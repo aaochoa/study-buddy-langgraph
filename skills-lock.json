@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "fastapi": {
+      "source": "fastapi/fastapi",
+      "sourceType": "github",
+      "skillPath": "fastapi/.agents/skills/fastapi/SKILL.md",
+      "computedHash": "3485912276f508f5356c0f26344b858f392643fabce6e29bab8b236ed43d0080"
+    },
+    "fastapi-expert": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/fastapi-expert/SKILL.md",
+      "computedHash": "3767f8f0f0f4d8564fc39491b26451a42966198c41ee268e71038d0bca6ce815"
+    },
+    "security-fastapi": {
+      "source": "igorwarzocha/opencode-workflows",
+      "sourceType": "github",
+      "skillPath": "agents/security-reviewer/.opencode/skill/security-fastapi/SKILL.md",
+      "computedHash": "58216506cf5960e648cbe4acd1bcd608d5421225061d72c0fae4b374f1f2bac1"
+    }
+  }
+}

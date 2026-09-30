@@ -1,0 +1,22 @@
+{
+  "name": "study-buddy",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.4.2",
+  "description": "Study Buddy Monorepo - FastAPI Agent Backend & Next.js Frontend",
+  "scripts": {
+    "dev": "concurrently -k -n \"agent,frontend\" -c \"magenta.bold,cyan.bold\" \"pnpm run dev:agent\" \"pnpm run dev:frontend\"",
+    "dev:agent": "cd agent && uv run uvicorn main:app --reload --port 8000",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build:frontend": "pnpm --filter frontend build",
+    "lint:frontend": "pnpm --filter frontend lint",
+    "lint:fix:frontend": "pnpm --filter frontend lint:fix",
+    "format:frontend": "pnpm --filter frontend format",
+    "format:check:frontend": "pnpm --filter frontend format:check",
+    "test:agent": "cd agent && uv run pytest",
+    "install:all": "pnpm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

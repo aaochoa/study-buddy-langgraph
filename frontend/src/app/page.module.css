@@ -1,0 +1,79 @@
+.mainLayout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: var(--bg-primary);
+}
+
+.contentArea {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    position: relative;
+}
+
+.offlineBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1.25rem;
+    background: rgba(244, 63, 94, 0.12);
+    border-bottom: 1px solid rgba(244, 63, 94, 0.25);
+    color: #fecdd3;
+    font-size: 0.8rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.bannerContent {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.bannerCode {
+    font-family: var(--font-mono);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 0.76rem;
+}
+
+.retryBtn {
+    background: rgba(244, 63, 94, 0.25);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    color: #ffffff;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.74rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.retryBtn:hover {
+    background: rgba(244, 63, 94, 0.4);
+}
+
+.messagesViewport {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.messagesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+}
+
+.scrollAnchor {
+    height: 1px;
+    width: 100%;
+}

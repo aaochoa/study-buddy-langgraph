@@ -1,0 +1,201 @@
+.messageRow {
+    display: flex;
+    gap: 0.85rem;
+    padding: 1.15rem 1rem;
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    transition: background var(--transition-fast);
+}
+
+.userRow {
+    flex-direction: row-reverse;
+}
+
+.assistantRow {
+    flex-direction: row;
+}
+
+.avatar {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.userAvatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.botAvatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0e172a 0%, #1e1b4b 100%);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: #a78bfa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(139, 92, 246, 0.25);
+}
+
+.messageContentWrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100% - 50px);
+    min-width: 0;
+}
+
+.userRow .messageContentWrapper {
+    align-items: flex-end;
+}
+
+.assistantRow .messageContentWrapper {
+    align-items: flex-start;
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.authorName {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.timestamp {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.modelTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+}
+
+.intentBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.02em;
+    text-transform: capitalize;
+}
+
+.intentChat {
+    background: var(--intent-chat-bg);
+    color: var(--intent-chat-text);
+    border: 1px solid var(--intent-chat-border);
+}
+
+.intentCode {
+    background: var(--intent-code-bg);
+    color: var(--intent-code-text);
+    border: 1px solid var(--intent-code-border);
+}
+
+.intentRag {
+    background: var(--intent-rag-bg);
+    color: var(--intent-rag-text);
+    border: 1px solid var(--intent-rag-border);
+}
+
+.bubble {
+    padding: 0.85rem 1.15rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    position: relative;
+    word-break: break-word;
+}
+
+.userBubble {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 18px rgba(79, 70, 229, 0.28);
+}
+
+.userBubble :global(.markdown-body) {
+    color: #ffffff;
+}
+
+.userBubble :global(.markdown-body) strong {
+    color: #ffffff;
+}
+
+.userBubble :global(.markdown-body) p {
+    color: #ffffff;
+}
+
+.assistantBubble {
+    background: rgba(18, 24, 40, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    color: #e2e8f0;
+}
+
+.errorContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fb7185;
+    font-size: 0.88rem;
+}
+
+.errorIcon {
+    flex-shrink: 0;
+}
+
+.actionFooter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+}
+
+.copyAction {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+}
+
+.copyAction:hover {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.successIcon {
+    color: var(--status-online);
+}

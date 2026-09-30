@@ -1,0 +1,32 @@
+[project]
+name = "langchain"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "langchain-chroma>=1.1.0",
+    "langchain-openai>=1.6.0",
+    "langchain-openrouter>=0.2.8",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.2.11",
+    "numpy>=2.5.2",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.3",
+    "uvicorn>=0.52.4",
+]
+
+[tool.pyright]
+extraPaths = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
