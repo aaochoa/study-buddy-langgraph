@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 from typing import Optional
@@ -31,7 +32,7 @@ KNOWLEDGE_BASE = [
 
 
 class DatabaseManager:
-    """Singleton manager for vector database operations (Chroma Cloud with InMemory fallback)."""
+    """Singleton manager for vector database operations (Chroma Cloud/Persistent with InMemory fallback)."""
 
     _instance: Optional["DatabaseManager"] = None
     _initialized: bool = False
@@ -55,7 +56,7 @@ class DatabaseManager:
         self._vectorstore: VectorStore = self._init_vectorstore()
         self._initialized = True
 
-    def _get_chroma_client(self):
+    def _get_chroma_cloud_client(self):
         """Initialize Chroma Cloud client if environment variables are set."""
         api_key = os.getenv("CHROMA_API_KEY")
         tenant = os.getenv("CHROMA_TENANT")
@@ -69,21 +70,65 @@ class DatabaseManager:
             )
         return None
 
-    def _init_vectorstore(self) -> VectorStore:
-        """Initialize Chroma vectorstore or fallback to InMemoryVectorStore."""
+    def _seed_collection_if_empty(self, vs: Chroma, collection) -> None:
+        """Seed initial knowledge base into collection if it has no documents."""
         try:
-            client = self._get_chroma_client()
-            if client:
-                return Chroma(
-                    client=client,
+            if collection.count() == 0:
+                ids = [hashlib.sha256(text.encode("utf-8")).hexdigest() for text in KNOWLEDGE_BASE]
+                metadatas = [{"source": "seed_knowledge", "index": i} for i in range(len(KNOWLEDGE_BASE))]
+                vs.add_texts(texts=KNOWLEDGE_BASE, metadatas=metadatas, ids=ids)
+                logger.info("Seeded %d documents into Chroma collection.", len(KNOWLEDGE_BASE))
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Could not seed knowledge base into Chroma: %s", e)
+
+    def _init_vectorstore(self) -> VectorStore:
+        """Initialize Chroma vectorstore (Cloud or Local Persistent) or fallback to InMemoryVectorStore."""
+        # 1. Try Chroma Cloud
+        try:
+            cloud_client = self._get_chroma_cloud_client()
+            if cloud_client:
+                collection = cloud_client.get_or_create_collection(
+                    "study_buddy_knowledge",
+                    metadata={"hnsw:space": "cosine"},
+                )
+                vs = Chroma(
+                    client=cloud_client,
                     collection_name="study_buddy_knowledge",
                     embedding_function=self._embeddings,
+                    collection_metadata={"hnsw:space": "cosine"},
                 )
+                self._seed_collection_if_empty(vs, collection)
+                logger.info("Connected to Chroma Cloud vectorstore.")
+                return vs
         except Exception as e:  # noqa: BLE001
             logger.warning(
-                "Could not connect to Chroma Cloud (%s). Using In-Memory vectorstore.", e
+                "Could not connect to Chroma Cloud (%s). Trying local persistence.", e
             )
 
+        # 2. Try Local Persistent Chroma
+        try:
+            persist_dir = os.getenv("CHROMA_PERSIST_DIR", "./chroma_data")
+            os.makedirs(persist_dir, exist_ok=True)
+            local_client = chromadb.PersistentClient(path=persist_dir)
+            collection = local_client.get_or_create_collection(
+                "study_buddy_knowledge",
+                metadata={"hnsw:space": "cosine"},
+            )
+            vs = Chroma(
+                client=local_client,
+                collection_name="study_buddy_knowledge",
+                embedding_function=self._embeddings,
+                collection_metadata={"hnsw:space": "cosine"},
+            )
+            self._seed_collection_if_empty(vs, collection)
+            logger.info("Initialized local persistent Chroma store at %s.", persist_dir)
+            return vs
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "Could not initialize local Chroma (%s). Falling back to InMemoryVectorStore.", e
+            )
+
+        # 3. Fallback to InMemoryVectorStore
         return InMemoryVectorStore.from_texts(
             texts=KNOWLEDGE_BASE,
             embedding=self._embeddings,
@@ -99,19 +144,19 @@ class DatabaseManager:
         """Get the embeddings model instance."""
         return self._embeddings
 
-    def similarity_search(self, query: str, k: int = 2) -> list[Document]:
+    def similarity_search(self, query: str, k: int = 4) -> list[Document]:
         """Perform similarity search on the vectorstore."""
         return self._vectorstore.similarity_search(query, k=k)
 
-    def similarity_search_with_score(self, query: str, k: int = 2) -> list[tuple[Document, float]]:
+    def similarity_search_with_score(self, query: str, k: int = 4) -> list[tuple[Document, float]]:
         """Perform similarity search returning documents and their distance/similarity scores."""
         return self._vectorstore.similarity_search_with_score(query, k=k)
 
     def similarity_search_relevant(
         self,
         query: str,
-        k: int = 2,
-        max_distance: float = 1.2,
+        k: int = 4,
+        max_distance: float = 0.8,
         min_similarity: float = 0.5,
     ) -> list[Document]:
         """Perform similarity search returning only semantically relevant documents."""
@@ -130,7 +175,7 @@ class DatabaseManager:
         return relevant_docs
 
     async def asimilarity_search_with_score(
-        self, query: str, k: int = 2
+        self, query: str, k: int = 4
     ) -> list[tuple[Document, float]]:
         """Asynchronously perform similarity search returning documents and scores."""
         return await self._vectorstore.asimilarity_search_with_score(query, k=k)
@@ -138,8 +183,8 @@ class DatabaseManager:
     async def asimilarity_search_relevant(
         self,
         query: str,
-        k: int = 2,
-        max_distance: float = 1.2,
+        k: int = 4,
+        max_distance: float = 0.8,
         min_similarity: float = 0.5,
     ) -> list[Document]:
         """Asynchronously perform similarity search returning only semantically relevant documents."""
@@ -157,15 +202,51 @@ class DatabaseManager:
 
         return relevant_docs
 
-    def add_texts(self, texts: list[str], metadatas: list[dict] | None = None) -> list[str]:
-        """Add text items to the vectorstore."""
-        return self._vectorstore.add_texts(texts=texts, metadatas=metadatas)
+    def max_marginal_relevance_search(
+        self,
+        query: str,
+        k: int = 4,
+        fetch_k: int = 10,
+        lambda_mult: float = 0.7,
+    ) -> list[Document]:
+        """Perform Maximal Marginal Relevance search to balance relevance and diversity."""
+        return self._vectorstore.max_marginal_relevance_search(
+            query, k=k, fetch_k=fetch_k, lambda_mult=lambda_mult
+        )
+
+    async def amax_marginal_relevance_search(
+        self,
+        query: str,
+        k: int = 4,
+        fetch_k: int = 10,
+        lambda_mult: float = 0.7,
+    ) -> list[Document]:
+        """Asynchronously perform Maximal Marginal Relevance search to balance relevance and diversity."""
+        return await self._vectorstore.amax_marginal_relevance_search(
+            query, k=k, fetch_k=fetch_k, lambda_mult=lambda_mult
+        )
+
+    def add_texts(
+        self,
+        texts: list[str],
+        metadatas: list[dict] | None = None,
+        ids: list[str] | None = None,
+    ) -> list[str]:
+        """Add text items to the vectorstore with deterministic deduplication IDs."""
+        if ids is None:
+            ids = [hashlib.sha256(t.encode("utf-8")).hexdigest() for t in texts]
+        return self._vectorstore.add_texts(texts=texts, metadatas=metadatas, ids=ids)
 
     async def aadd_texts(
-        self, texts: list[str], metadatas: list[dict] | None = None
+        self,
+        texts: list[str],
+        metadatas: list[dict] | None = None,
+        ids: list[str] | None = None,
     ) -> list[str]:
-        """Asynchronously add text items to the vectorstore."""
-        return await self._vectorstore.aadd_texts(texts=texts, metadatas=metadatas)
+        """Asynchronously add text items to the vectorstore with deterministic deduplication IDs."""
+        if ids is None:
+            ids = [hashlib.sha256(t.encode("utf-8")).hexdigest() for t in texts]
+        return await self._vectorstore.aadd_texts(texts=texts, metadatas=metadatas, ids=ids)
 
 
 # Global singleton instance & convenience exports
